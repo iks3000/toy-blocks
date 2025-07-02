@@ -11,25 +11,41 @@ export interface NodesState {
 export const checkNodeStatus = createAsyncThunk(
   "nodes/checkNodeStatus",
   async (node: Node, thunkAPI) => {
-    const response = await fetch(`${node.url}/api/v1/status`);
-    const data: { node_name: string } = await response.json();
+    try {
+      const response = await fetch(`${node.url}/api/v1/status`);
 
-    // execute fetching blocks dispatch ***from Yevgeniy***
-    // const { dispatch } = thunkAPI;
-    // dispatch(fetchBlocks(node));
-    return data;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: { node_name: string } = await response.json();
+      return data;
+    } catch (error) {
+      // Log error for debugging
+      console.warn(`Failed to check status for ${node.url}:`, error);
+      throw error;
+    }
   }
 );
 
-// dispatch@ ***from Yevgeniy***
-// return_type: Array<any> return_value: blocks information
-// we get information of blocks from each node
+// Returns blocks information from each node
 export const fetchBlocks = createAsyncThunk(
   "nodes/fetchBlocks",
-  async (node: Node ) => {
-    const response = await fetch(`${node.url}/api/v1/blocks`);
-    const blocks: { data: Array<any> } = await response.json();
-    return blocks;
+  async (node: Node) => {
+    try {
+      const response = await fetch(`${node.url}/api/v1/blocks`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const blocks: { data: Array<any> } = await response.json();
+      return blocks;
+    } catch (error) {
+      // Log error for debugging
+      console.warn(`Failed to fetch blocks for ${node.url}:`, error);
+      throw error;
+    }
   }
 );
 
@@ -37,9 +53,20 @@ export const checkNodesStatus = createAsyncThunk(
   "nodes/checkNodesStatus",
   async (nodes: Node[], thunkAPI) => {
     const { dispatch } = thunkAPI;
-    nodes.forEach((node) => {
-      dispatch(checkNodeStatus(node)).then(()=>dispatch(fetchBlocks(node)));
+
+    // Run checks in parallel, handle errors individually
+    const promises = nodes.map(async (node) => {
+      try {
+        await dispatch(checkNodeStatus(node)).unwrap();
+        // If status is successful, fetch blocks
+        await dispatch(fetchBlocks(node)).unwrap();
+      } catch (error) {
+        // Errors are already handled in individual thunks
+        console.warn(`Node ${node.url} failed:`, error);
+      }
     });
+
+    await Promise.allSettled(promises);
   }
 );
 
@@ -65,10 +92,11 @@ export const nodesSlice = createSlice({
       if (node) {
         node.online = false;
         node.loading = false;
+        // Save error info for display
+        node.error = action.error.message || "Unknown error";
       }
     });
-    // reducer@ from ***Yevgeniy***
-    // start loading blocks
+    // Start loading blocks
     builder.addCase(fetchBlocks.pending, (state, action) => {
       const node = state.list.find((n) => n.url === action.meta.arg.url);
       if (node) {
@@ -76,30 +104,30 @@ export const nodesSlice = createSlice({
         node.blocks = [];
       }
     });
-    // reducer@ from ***Yevgeniy***
-    // finished loading blocks
+    // Finished loading blocks
     builder.addCase(fetchBlocks.fulfilled, (state, action) => {
       const node = state.list.find((n) => n.url === action.meta.arg.url);
       if (node) {
         node.loadingBlocks = false;
         let data = action.payload.data;
         node.blocks = [];
-        data.forEach(item => {
+        data.forEach((item) => {
           const block = {
             id: item.id,
-            data: item.attributes.data
-          }
+            data: item.attributes.data,
+          };
           node.blocks.push(block);
-        })
+        });
       }
     });
-    // reducer@ ***from Yevgeniy***
-    // failed loading blocks
+    // Failed loading blocks
     builder.addCase(fetchBlocks.rejected, (state, action) => {
       const node = state.list.find((n) => n.url === action.meta.arg.url);
       if (node) {
         node.loadingBlocks = false;
         node.blocks = [];
+        // Save error info for blocks
+        node.blocksError = action.error.message || "Failed to load blocks";
       }
     });
   },

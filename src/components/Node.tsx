@@ -7,11 +7,12 @@ import {
   AccordionDetails,
   Box,
   Card,
-  CardContent
+  CardContent,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import colors from "../constants/colors";
 import Status from "./Status";
+import NodeStatus from "./NodeStatus";
 import { Node as NodeType } from "../types/Node";
 
 type Props = {
@@ -64,31 +65,31 @@ const TypographySecondaryHeading = styled(Typography)(({ theme }) => ({
 const CardBlock = styled(Card)({
   marginBottom: 8,
   paddingBottom: 0,
-  backgroundColor: "#e0e0e0"
+  backgroundColor: "#e0e0e0",
 });
 
 const CardContentBlock = styled(CardContent)({
   padding: 8,
-  '&:last-child': {
+  "&:last-child": {
     paddingBottom: 8,
-  }
+  },
 });
 
 const TypographyID = styled(Typography)({
   color: "#304FFE",
-  fontFamily: 'Roboto',
+  fontFamily: "Roboto",
   fontSize: 10,
   letterSpacing: 1.5,
-  fontWeight: 700
+  fontWeight: 700,
 });
 
 const TypographyData = styled(Typography)({
-  fontFamily: 'Roboto',
+  fontFamily: "Roboto",
   fontSize: 14,
-  letterSpacing: 0.25
+  letterSpacing: 0.25,
 });
 
-const Node: React.FC<Props> = ({ node, expanded, toggleNodeExpanded }) => {
+const Node = ({ node, expanded, toggleNodeExpanded }: Props) => {
   // ***  from Yevgeniy ***
   //  Here you can edit display style of each block
   // Card color is #e0e0e0
@@ -97,11 +98,9 @@ const Node: React.FC<Props> = ({ node, expanded, toggleNodeExpanded }) => {
     <CardBlock key={id}>
       <CardContentBlock>
         <TypographyID>
-          {block.id < 10 ? "00" + block.id : block.id }
+          {block.id < 10 ? "00" + block.id : block.id}
         </TypographyID>
-        <TypographyData>
-          {block.data}
-        </TypographyData>
+        <TypographyData>{block.data}</TypographyData>
       </CardContentBlock>
     </CardBlock>
   ));
@@ -126,16 +125,18 @@ const Node: React.FC<Props> = ({ node, expanded, toggleNodeExpanded }) => {
         </BoxSummaryContent>
       </AccordionSummaryContainer>
       <AccordionDetails>
-        { /* *** from Yevgeniy *** */
-          /* display blocks information */}
-        <Typography variant="h6">
-          {
-            !node.online ? "No Connection" :
-              node.loadingBlocks ? "Loading..." :
-                node.blocks.length !== 0 ? content : "No Blocks"
-          }
-        </Typography>
-
+        {/* Show error if exists and node is offline */}
+        {!node.online && node.error && <NodeStatus node={node} />}
+        {/* Show blocks or status */}
+        {!node.online ? (
+          <Typography variant="h6">No Connection</Typography>
+        ) : node.loadingBlocks ? (
+          <Typography variant="h6">Loading...</Typography>
+        ) : node.blocks.length !== 0 ? (
+          content
+        ) : (
+          <Typography variant="h6">No Blocks</Typography>
+        )}
       </AccordionDetails>
     </AccordionRoot>
   );

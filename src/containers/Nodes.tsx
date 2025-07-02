@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Node as NodeType } from "../types/Node";
 import Node from "../components/Node";
 import { Typography, Box } from "@mui/material";
-import { useDispatch } from "react-redux";
 import { useAppSelector } from "../store/configureStore";
-import { checkNodesStatus, selectNodes } from "../reducers/nodes";
+import { useDispatch } from "react-redux";
+import { selectNodes, checkNodesStatus } from "../reducers/nodes";
 
-export const Nodes: React.FC = () => {
+const Nodes = () => {
   const [expandedNodeURL, setExpandedNodeURL] = useState<null | string>(null);
-  const dispatch = useDispatch();
   const nodes = useAppSelector(selectNodes);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(checkNodesStatus(nodes));
