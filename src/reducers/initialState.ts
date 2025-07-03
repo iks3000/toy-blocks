@@ -1,3 +1,5 @@
+const NODE4_URL = process.env.REACT_APP_NODE4_URL || "http://localhost:3002";
+
 const initialState = () => ({
   nodes: {
     list: [
@@ -32,7 +34,7 @@ const initialState = () => ({
         blocksError: undefined,
       },
       {
-        url: "http://localhost:3002",
+        url: NODE4_URL,
         online: false,
         name: "Node 4",
         loading: false,

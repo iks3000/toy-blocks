@@ -1,5 +1,16 @@
 # Toy Blocks
 
+## Backend API on Render.com
+
+The backend (Node.js/Express server) is deployed on [Render.com](https://render.com/):
+
+- **API URL:** https://toy-block-server.onrender.com
+- Endpoints:
+  - `/api/v1/status` — returns node status
+  - `/api/v1/blocks` — returns mock blocks data
+
+This API is used as Node 4 in the application and is available from anywhere (including Netlify, Vercel, or local frontend).
+
 ## Installation
 
 1. `git clone repo`
@@ -82,12 +93,12 @@ The application connects to the following servers:
 1. https://thawing-springs-53971.herokuapp.com (Node 1)
 2. https://secret-lowlands-62331.herokuapp.com (Node 2)
 3. https://calm-anchorage-82141.herokuapp.com (Node 3)
-4. http://localhost:3002 (Node 4 - local test server)
+4. https://toy-block-server.onrender.com (Node 4 - backend on Render)
 
 ## Debugging
 
 - Check the browser console for CORS errors
-- Make sure the local server is running on port 3002
+- Make sure the local server is running on port 3002 (if using local backend)
 - Use the Network tab in DevTools to monitor requests
 
 ---
